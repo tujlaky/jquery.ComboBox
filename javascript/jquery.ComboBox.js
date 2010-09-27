@@ -28,7 +28,17 @@
 		this.mouse_enabled = true;
 		/*div for implement box*/
 		this.$select_div = null;
+		this.$select = null;
 		var _self = this;
+		
+		this.changeSelect = function(selected) {
+			_self.$select.find("option").each(function() {
+				if ($(this).val() == selected) {
+					$(this).attr("selected", true);
+				}
+			});
+			_self.$select.trigger("change");
+		}
 
 		this.showFields = function() {
 			var min_zindex = 1000;
@@ -83,7 +93,7 @@
 
 			var $options_div = _self.$select_div.find("div.option_fields");
 			$options_div.empty();
-			
+
 			if (results.length == 0) {
 				$(document.createElement("span"))
 					.addClass("message")
@@ -201,28 +211,37 @@
 
 				_self.scroller($select_div.find("div.hovered-item").first());
 				return false;
-			// up
+				// up
 			} else if (e.keyCode == "38") {
 				if ($("div.hovered-item").length > 0) {
 					$selected = $("div.hovered-item");
 					var $prev = $selected.prevAll("div.combobox_item")
-					if ($prev.length != 0) {
-						$("div.hovered-item").removeClass("hovered-item").removeClass("scrolled_with_keyboard");
-						$prev.first().addClass("hovered-item").addClass("scrolled_with_keyboard");
-					}
+						if ($prev.length != 0) {
+							$("div.hovered-item").removeClass("hovered-item").removeClass("scrolled_with_keyboard");
+							$prev.first().addClass("hovered-item").addClass("scrolled_with_keyboard");
+						}
 				} else {
 					$("div.combobox_item").first().addClass("hovered-item").addClass("scrolled_with_keyboard");
 				}
 				_self.scroller($select_div.find("div.hovered-item").first());
 				return false;
 			} else if (e.keyCode == "13") {
+
 				_self.$select_div.find("div.selected").removeClass("selected");
 				_self.$select_div.find("div.hovered-item").addClass("selected").removeClass("hovered-item");
-				var $hidden = _self.$select_div.find("input.hidden_input");
 				var selected = _self.$select_div.find("div.selected").text();
-				$hidden.val(selected);
+				_self.changeSelect(selected);
 				$(this).val(selected);
 				_self.hideFields();
+				var $next = _self.$select_div.parent().next();
+				var $next_input = $next.find("div.combobox_container > input.combobox_input");
+				if ($next_input.length != 0) {
+					_self.hideFields();
+					$next_input.focus();
+				} else {
+					var $next_input = _self.$select_div.parent().nextAll().find("input").first();
+					$next_input.focus();
+				}
 				return false;
 			// HOME
 			} else if (e.keyCode == "36") {
@@ -255,7 +274,7 @@
 			$select.hide();
 			var $select_div = this.$select_div;
 
-			$select_div.appendTo($select.parent());
+			$select_div.insertAfter($select);
 			var i=0;
 			var combobox = this;
 			$select_div.find("div.option_fields > div.combobox_item").each(function() {
@@ -291,7 +310,7 @@
 				$(this).addClass("selected");
 				$select_div.find("input.combobox_input").val($(this).text());
 				_self.hideFields();
-				$select_div.find("input.hidden_input").val($(this).text());
+				_self.changeSelect($(this).text());
 			});
 			$select_div.find("option_fields").bind("keydown", function(e) {
 				var $input = $(this).find("input.combobox_input");
@@ -314,7 +333,7 @@
 			$select_div.find("a.open_box_button").live("click", function() {
 				var $select_div = $(this).parent();
 				var $fields = $select_div.find("div.option_fields");
-				$select_div.find("input.combobox_input").focus();
+				$select_div.find("input.combobox_input").focus().select();
 				if ($fields.find("div.hovered-item").length == 0) {
 					if ($fields.find("div.selected").length == 0) {
 						$fields.find("div.combobox_item").first()
@@ -331,7 +350,7 @@
 
 			});
 
-			$select_div.find("input.combobox_input").bind("click", function(event) {
+			$select_div.find("input.combobox_input").live("click", function(event) {
 				if (_self.$select_div.find("inactive_fields")) {
 					_self.showFields();
 					$(this).select();
@@ -359,14 +378,7 @@
 					.val($.fn.ComboBox.regional["default"].inputempty)
 					.attr("autocomplete", "off");
 
-		var $hidden = $(document.createElement("input"))
-					.attr("type", "hidden")
-					.addClass("hidden_input")
-					.appendTo($div)
-					.attr("name", $select.attr("name"))
-					.val("");
 
-		$select.attr("name", "");
 		var $button = $(document.createElement("a"))
 					.addClass("open_box_button")
 					.appendTo($div)
@@ -384,7 +396,6 @@
 				if ($(this).attr("selected") == true) {
 					$option.addClass("selected");
 					$input.val($(this).val());
-					$hidden.val($(this).val());
 				}
 			}
 		});
@@ -399,6 +410,7 @@
 		this.each(function() {
 			$select_div = createComboBoxFromSelect($(this));
 			$combobox = new ComboBox();
+			$combobox.$select = $(this);
 			$combobox.$select_div = $select_div;
 			$combobox.initComboBox($(this));
 		});
