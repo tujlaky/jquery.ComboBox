@@ -13,5 +13,5 @@ i18n support:
 
 TODO:
 --------------------------------------
- * Fix bad object methods
- * Add support to create combobox from array, or json 
+  * Add support to create combobox from array, or json 
+  * Add namespace
