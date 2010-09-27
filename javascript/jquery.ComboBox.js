@@ -9,7 +9,7 @@
 	$.fn.ComboBox = function() {}
  	$.fn.ComboBox.regional = new Array();
 	$.fn.ComboBox.setRegional = function($lang) {
-		$.extend(regional["default"], $lang);
+		$.extend($.fn.ComboBox.regional["default"], $lang);
 	}
 
 	$.fn.ComboBox.regional["default"] = {
@@ -29,6 +29,30 @@
 		/*div for implement box*/
 		this.$select_div = null;
 		var _self = this;
+
+		this.showFields = function() {
+			var min_zindex = 1000;
+			var max = min_zindex;
+			var $fields = _self.$select_div.find("div.option_fields");
+
+			$("div.combobox_container").each(function() {
+				var zindex = $(this).css("z-index"); 
+				if (zindex > max) {
+					max = zindex;
+				}
+			});
+			$fields.show();
+			_self.$select_div.css("z-index", max+1);
+			$fields.removeClass("inactive_fields");
+	
+		}
+
+		this.hideFields = function () {
+			var $fields = _self.$select_div.find("div.option_fields");
+			$fields.hide();
+			_self.$select_div.css("z-index", 1);
+			$fields.addClass("inactive_fields");
+		}
 
 		/*
 		 *	Search text in Elements array
@@ -89,7 +113,7 @@
 				return;
 			}
 			var top = $current.position().top;
-			var $container = $select_div.find("div.option_fields");
+			var $container = _self.$select_div.find("div.option_fields");
 			var scroll_top = $container.scrollTop();
 			var line_height = $current.height()+3;
 			var select_height = $container.height();
@@ -126,8 +150,8 @@
 		 * Disable mouse actions on select elements
 		 */
 		this.disableMouse = function() {
-			if (this.mouse_enabled == true) {
-				$("div.combobox_item").css('cursor', 'text');
+			if (_self.mouseIsEnabled() == true) {
+				_self.$select_div.find("div.combobox_item").css('cursor', 'text');
 				this.mouse_enabled = false;
 			}
 		}
@@ -135,9 +159,9 @@
 		 * Enable mouse actions on select
 		 */
 		this.enableMouse = function() {
-			if (this.mouse_enabled == false) {
-				$("div.combobox_item").css('cursor', 'pointer');
-				this.mouse_enabled = true;
+			if (_self.mouseIsEnabled() == false) {
+				_self.$select_div.find("div.combobox_item").css('cursor', 'pointer');
+				_self.mouse_enabled = true;
 			}
 		}
 
@@ -151,12 +175,13 @@
 		/*
 		 * Action for arrows press
 		 */
-		this.arrowPressed = function(e) {
+		this.arrowPressed = function(e, extra) {
 			var $selected = null;
 			var $select_div = _self.$select_div;
 			_self.disableMouse();
-
-
+			if (extra != null) {
+				e.keyCode = extra;
+			}
 			// down
 			if (e.keyCode == "40") {
 				if ($("div.hovered-item").length > 0) {
@@ -174,7 +199,7 @@
 					}
 				}
 
-				_self.scroller($("div.hovered-item").first());
+				_self.scroller($select_div.find("div.hovered-item").first());
 				return false;
 			// up
 			} else if (e.keyCode == "38") {
@@ -188,25 +213,38 @@
 				} else {
 					$("div.combobox_item").first().addClass("hovered-item").addClass("scrolled_with_keyboard");
 				}
-				_self.scroller($("div.hovered-item").first());
+				_self.scroller($select_div.find("div.hovered-item").first());
 				return false;
 			} else if (e.keyCode == "13") {
-				$select_div.find("div.selected").removeClass("selected");
-				$select_div.find("div.hovered-item").addClass("selected").removeClass("hovered-item");
-				$select_div.find("input.hidden_input").val($("div.selected").text());
-				$(this).val($("div.selected").text());
-				$select_div.find("div.option_fields").hide().addClass("inactive_fields");
+				_self.$select_div.find("div.selected").removeClass("selected");
+				_self.$select_div.find("div.hovered-item").addClass("selected").removeClass("hovered-item");
+				var $hidden = _self.$select_div.find("input.hidden_input");
+				var selected = _self.$select_div.find("div.selected").text();
+				$hidden.val(selected);
+				$(this).val(selected);
+				_self.hideFields();
 				return false;
 			// HOME
 			} else if (e.keyCode == "36") {
 				$("div.hovered-item").removeClass("hovered-item").removeClass("scrolled_with_keyboard");
 				$("div.combobox_item").first().addClass("hovered-item").addClass("scrolled_with_keyboard");
-				_self.scroller($("div.hovered-item").first());
+				_self.scroller($select_div.find("div.hovered-item").first());
 			// END
 			} else if (e.keyCode == "35") {
 				$("div.hovered-item").removeClass("hovered-item").removeClass("scrolled_with_keyboard");
 				$("div.combobox_item").last().addClass("hovered-item").addClass("scrolled_with_keyboard");
-				_self.scroller($("div.hovered-item").first());
+				_self.scroller($select_div.find("div.hovered-item").first());
+			} else if (e.keyCode == "9") {
+				var $next = _self.$select_div.parent().next();
+				var $next_input = $next.find("div.combobox_container > input.combobox_input");
+				if ($next_input.length != 0) {
+					_self.hideFields();
+					$next_input.focus();
+				} else {
+					var $next_input = _self.$select_div.parent().nextAll().find("input").first();
+					$next_input.focus();
+				}
+				return false;
 			}
 			return true;
 		}
@@ -228,8 +266,16 @@
 			this.scroller($select_div.find("div.select"));
 			$select_div.find("input.combobox_input").bind("keydown", this.arrowPressed );
 			var $option_fields = $select_div.find("div.option_fields");
-			$select_div.find("input.combobox_input").bind("keyup", function(e) {
-				var $select_div = $(this).parent();
+
+			$select_div.find("input.combobox_input").bind("keyup", function(e, extra) {
+				if (extra != null) {
+					e.keyCode = extra;
+				}
+
+				if ($option_fields.hasClass("inactive_fields") && e.keyCode != 13 && e.keyCode != 9) {
+					_self.showFields();
+					$(this).select();
+				}
 
 				if ($.inArray(e.keyCode, new Array(40,38,13, 36, 35)) > -1) {
 					return false;
@@ -240,12 +286,22 @@
 				_self.timer = setTimeout(_self.search, 100);
 				return false;
 			});
-			$("div.combobox_item").live("click", function() {
+			$select_div.find("div.combobox_item").live("click", function() {
 				$("div.selected").removeClass("selected");
 				$(this).addClass("selected");
 				$select_div.find("input.combobox_input").val($(this).text());
-				$select_div.find("div.option_fields").hide().addClass("inactive_fields");
+				_self.hideFields();
 				$select_div.find("input.hidden_input").val($(this).text());
+			});
+			$select_div.find("option_fields").bind("keydown", function(e) {
+				var $input = $(this).find("input.combobox_input");
+				$input.trigger("keydown", e.keyCode);
+			});
+
+			$select_div.find("option_fields").bind("keyup", function(e) {
+				var $input = $(this).find("input.combobox_input");
+				$input.trigger("keyup", e.KeyCode);
+
 			});
 
 			$select_div.find("div.combobox_item").live("mouseenter", this.hover_function).
@@ -258,7 +314,7 @@
 			$select_div.find("a.open_box_button").live("click", function() {
 				var $select_div = $(this).parent();
 				var $fields = $select_div.find("div.option_fields");
-				$select_div.find("input.combobox_input").focus().select();
+				$select_div.find("input.combobox_input").focus();
 				if ($fields.find("div.hovered-item").length == 0) {
 					if ($fields.find("div.selected").length == 0) {
 						$fields.find("div.combobox_item").first()
@@ -267,20 +323,26 @@
 					}
 				}
 				if ($fields.hasClass("inactive_fields")) {
-					$fields.show();
-					$fields.removeClass("inactive_fields");
+					_self.showFields();
 				} else {
-					$fields.hide();
-					$fields.addClass("inactive_fields");
+					_self.hideFields();
 				}
 				return false;
 
 			});
 
+			$select_div.find("input.combobox_input").bind("click", function(event) {
+				if (_self.$select_div.find("inactive_fields")) {
+					_self.showFields();
+					$(this).select();
+				}
+
+			});
+		
 			$("body").bind("click", function(e) {
 				if (e.target != $select_div.find("input.combobox_input")[0]) {
 					if (!$option_fields.hasClass("inactive_fields")) {
-						$option_fields.hide().addClass("inactive_fields");
+						_self.hideFields();
 					}
 				}
 			});

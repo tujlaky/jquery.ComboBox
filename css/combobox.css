@@ -11,6 +11,7 @@ span.matched {
 div.combobox_container {
 	position: relative;
 	height: 18px;
+	z-index: 1;
 }
 
 	div.combobox_container input.combobox_input {
@@ -43,12 +44,13 @@ div.combobox_container {
 		height: 110px;
 		overflow: auto;
 		border: 1px solid #CFCFCF;
+		z-index: 5000;
 	}
 		div.combobox_container div.option_fields span.message {
 			font-style: italic;	
 		}
 		div.combobox_container div.option_fields div.combobox_item {
-			cursor: default;
+			cursor: pointer;
 			padding: 1px 3px 1px 3px;
 		}
 
