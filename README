@@ -1,5 +1,6 @@
 Simple plugin for jquery to create combobox from select.
-
+ ** Author: UJLAKY Tibor <hangyagy@gmail.com> **
+-------------------------------------------------------------
 Usage: 
 -------------------------------------
  - Replace select with a combobox:
