@@ -2,16 +2,16 @@ Simple plugin for jquery to create combobox from select.
 
 Usage: 
 -------------------------------------
-	- Replace select with a combobox:
-	 $("select").replaceWithComboBox();
+ - Replace select with a combobox:
+  $("select").replaceWithComboBox();
 
 i18n support:
 --------------------------------------
-   - see javascript/i18n/jquery.ComboBox-hu.js:
-		- if you want to create new language simple create a new $.fn.ComboBox.regional[] element, and set it with $.fn.ComboBox.setRegional();
-		- then add your js file  to your site after jquery.ComboBox.js
+ - see javascript/i18n/jquery.ComboBox-hu.js:
+  - if you want to create new language simple create a new $.fn.ComboBox.regional[] element, and set it with $.fn.ComboBox.setRegional();
+  - then add your js file  to your site after jquery.ComboBox.js
 
 TODO:
 --------------------------------------
-	* Fix bad object methods
-	* Add support to create combobox from array, or json 
+ * Fix bad object methods
+ * Add support to create combobox from array, or json 
