@@ -28,7 +28,7 @@
 		this.mouse_enabled = true;
 		/*div for implement box*/
 		this.$select_div = null;
-
+		var _self = this;
 
 		/*
 		 *	Search text in Elements array
@@ -52,12 +52,12 @@
 		 *	Handle search with value of input
 		 */
 		this.search = function() {
-			var $text_field = $select_div.find("input.combobox_input");
+			var $text_field = _self.$select_div.find("input.combobox_input");
 			var text = $text_field.val();
 			var results = null;
-			results = this.searchInElements(text);
+			results = _self.searchInElements(text);
 
-			var $options_div = $text_field.parent().find("div.option_fields");
+			var $options_div = _self.$select_div.find("div.option_fields");
 			$options_div.empty();
 			
 			if (results.length == 0) {
@@ -77,7 +77,7 @@
 					$item.addClass("hovered-item").addClass("scrolled_with_keyboard");
 				}
 			}
-			this.scroller($("div.hovered-item").first());
+			_self.scroller($("div.hovered-item").first());
 			return false;
 		}
 
@@ -104,9 +104,7 @@
 		 * Mouse hover action
 		 */
 		this.hover_function = function(e) {
-			$select_div = $(this).parent().parent();
-			$combobox = $select_div.data("combobox");
-			if ($combobox.mouseIsEnabled() == false) {
+			if (_self.mouseIsEnabled() == false) {
 				return;
 			}
 			if ($("div.hovered-item").hasClass("scrolled_with_keyboard")) {
@@ -119,9 +117,7 @@
 		 * Mouse out action
 		 */
 		this.leave_function = function() {
-			var $select_div = $(this).parent().parent();
-			var $combobox = $select_div.data("combobox");
-			if ($combobox.mouseIsEnabled() == false) {
+			if (_self.mouseIsEnabled() == false) {
 				return;
 			}
 			$(this).removeClass("hovered-item");
@@ -157,9 +153,8 @@
 		 */
 		this.arrowPressed = function(e) {
 			var $selected = null;
-			var $select_div = $(this).parent();
-			var $combobox = $select_div.data("combobox");
-			$combobox.disableMouse();
+			var $select_div = _self.$select_div;
+			_self.disableMouse();
 
 
 			// down
@@ -179,7 +174,7 @@
 					}
 				}
 
-				$combobox.scroller($("div.hovered-item").first());
+				_self.scroller($("div.hovered-item").first());
 				return false;
 			// up
 			} else if (e.keyCode == "38") {
@@ -193,7 +188,7 @@
 				} else {
 					$("div.combobox_item").first().addClass("hovered-item").addClass("scrolled_with_keyboard");
 				}
-				$combobox.scroller($("div.hovered-item").first());
+				_self.scroller($("div.hovered-item").first());
 				return false;
 			} else if (e.keyCode == "13") {
 				$select_div.find("div.selected").removeClass("selected");
@@ -206,12 +201,12 @@
 			} else if (e.keyCode == "36") {
 				$("div.hovered-item").removeClass("hovered-item").removeClass("scrolled_with_keyboard");
 				$("div.combobox_item").first().addClass("hovered-item").addClass("scrolled_with_keyboard");
-				$combobox.scroller($("div.hovered-item").first());
+				_self.scroller($("div.hovered-item").first());
 			// END
 			} else if (e.keyCode == "35") {
 				$("div.hovered-item").removeClass("hovered-item").removeClass("scrolled_with_keyboard");
 				$("div.combobox_item").last().addClass("hovered-item").addClass("scrolled_with_keyboard");
-				$combobox.scroller($("div.hovered-item").first());
+				_self.scroller($("div.hovered-item").first());
 			}
 			return true;
 		}
@@ -232,18 +227,17 @@
 			
 			this.scroller($select_div.find("div.select"));
 			$select_div.find("input.combobox_input").bind("keydown", this.arrowPressed );
-
+			var $option_fields = $select_div.find("div.option_fields");
 			$select_div.find("input.combobox_input").bind("keyup", function(e) {
 				var $select_div = $(this).parent();
-				var $combobox = $select_div.data("combobox");
+
 				if ($.inArray(e.keyCode, new Array(40,38,13, 36, 35)) > -1) {
 					return false;
 				}
-				if ($combobox.timer != null) {
-					clearTimeout($combobox.timer);
+				if (_self.timer != null) {
+					clearTimeout(_self.timer);
 				}
-				$combobox.search();
-//				$this.timer = setTimeout("$this.search()", 100);
+				_self.timer = setTimeout(_self.search, 100);
 				return false;
 			});
 			$("div.combobox_item").live("click", function() {
@@ -282,7 +276,15 @@
 				return false;
 
 			});
-	
+
+			$("body").bind("click", function(e) {
+				if (e.target != $select_div.find("input.combobox_input")[0]) {
+					if (!$option_fields.hasClass("inactive_fields")) {
+						$option_fields.hide().addClass("inactive_fields");
+					}
+				}
+			});
+
 		}
 	}
 
@@ -336,7 +338,6 @@
 			$select_div = createComboBoxFromSelect($(this));
 			$combobox = new ComboBox();
 			$combobox.$select_div = $select_div;
-			$select_div.data("combobox", $combobox);
 			$combobox.initComboBox($(this));
 		});
 	}
