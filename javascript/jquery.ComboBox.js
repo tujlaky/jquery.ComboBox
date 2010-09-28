@@ -2,7 +2,7 @@
  *	JQuery based ComboBox
  *	To add new combobox $("select").replaceWithComboBox();
  *	Author: UJLAKY Tibor <tujlaky@adverticum.com>
- * 	$Id$
+ *	Homepage: http://github.com/hangyagy/jquery.ComboBox
  */
 (function($) {
 	/* i18n */
