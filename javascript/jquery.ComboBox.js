@@ -181,7 +181,26 @@
 		this.mouseIsEnabled = function() {
 			return this.mouse_enabled;
 		}
-
+		this.enterPressed = function(e) {
+			if (e.keyCode == 13) {
+				_self.$select_div.find("div.selected").removeClass("selected");
+				_self.$select_div.find("div.hovered-item").addClass("selected").removeClass("hovered-item");
+				var selected = _self.$select_div.find("div.selected").text();
+				_self.changeSelect(selected);
+				$(this).val(selected);
+				_self.hideFields();
+				var $next = _self.$select_div.parent().next();
+				var $next_input = $next.find("div.combobox_container > input.combobox_input");
+				if ($next_input.length != 0) {
+					_self.hideFields();
+					$next_input.focus();
+				} else {
+					var $next_input = _self.$select_div.parent().nextAll().find("input").first();
+					$next_input.focus();
+				}
+				return false;	
+			}
+		}
 		/*
 		 * Action for arrows press
 		 */
@@ -226,22 +245,6 @@
 				_self.scroller($select_div.find("div.hovered-item").first());
 				return false;
 			} else if (e.keyCode == "13") {
-
-				_self.$select_div.find("div.selected").removeClass("selected");
-				_self.$select_div.find("div.hovered-item").addClass("selected").removeClass("hovered-item");
-				var selected = _self.$select_div.find("div.selected").text();
-				_self.changeSelect(selected);
-				$(this).val(selected);
-				_self.hideFields();
-				var $next = _self.$select_div.parent().next();
-				var $next_input = $next.find("div.combobox_container > input.combobox_input");
-				if ($next_input.length != 0) {
-					_self.hideFields();
-					$next_input.focus();
-				} else {
-					var $next_input = _self.$select_div.parent().nextAll().find("input").first();
-					$next_input.focus();
-				}
 				return false;
 			// HOME
 			} else if (e.keyCode == "36") {
@@ -284,6 +287,8 @@
 			
 			this.scroller($select_div.find("div.select"));
 			$select_div.find("input.combobox_input").bind("keydown", this.arrowPressed );
+			$select_div.find("input.combobox_input").bind("keypress", this.enterPressed );
+
 			var $option_fields = $select_div.find("div.option_fields");
 
 			$select_div.find("input.combobox_input").bind("keyup", function(e, extra) {
