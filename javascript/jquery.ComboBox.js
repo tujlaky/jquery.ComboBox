@@ -52,7 +52,10 @@
 				}
 			});
 			$fields.show();
-			_self.$select_div.css("z-index", max+1);
+			max++;
+			_self.$select_div.css("z-index", max);
+			// FIXME: ie fix for z-index
+			_self.$select_div.parent().css("z-index", max);
 			$fields.removeClass("inactive_fields");
 	
 		}
