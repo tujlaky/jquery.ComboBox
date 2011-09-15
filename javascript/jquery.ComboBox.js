@@ -228,8 +228,51 @@
 		this.mouseIsEnabled = function() {
 			return this.mouse_enabled;
 		}
-		this.enterPressed = function(e) {
-			if (e.keyCode == 13) {
+		/*
+		 * Action for special keys 
+		 */
+		this.specialPressed = function(e, extra) {
+			var $selected = null;
+			var $select_div = _self.$select_div;
+			_self.disableMouse();
+			if (extra != null) {
+				e.keyCode = extra;
+			}
+			var code = (e.keyCode ? e.keyCode : e.which);
+			// down
+			if (code == "40") {
+				if ($("div.hovered-item").length > 0) {
+					$selected = $select_div.find("div.hovered-item");
+					var $next = $selected.nextAll("div.combobox_item:visible");
+					if ($next.length != 0) {
+						$select_div.find("div.hovered-item").removeClass("hovered-item").removeClass("scrolled_with_keyboard");
+						$next.first().addClass("hovered-item").addClass("scrolled_with_keyboard");
+					}
+				} else {
+					if ($("div.selected").length != 0) {
+						$select_div.find("div.selected").first().addClass("hovered-item");
+					} else {
+						$("div.combobox_item").first().addClass("hovered-item");
+					}
+				}
+
+				_self.scroller($select_div.find("div.hovered-item").first());
+				return false;
+				// up
+			} else if (code == "38") {
+				if ($("div.hovered-item").length > 0) {
+					$selected = $("div.hovered-item");
+					var $prev = $selected.prevAll("div.combobox_item")
+						if ($prev.length != 0) {
+							$("div.hovered-item").removeClass("hovered-item").removeClass("scrolled_with_keyboard");
+							$prev.first().addClass("hovered-item").addClass("scrolled_with_keyboard");
+						}
+				} else {
+					$("div.combobox_item").first().addClass("hovered-item").addClass("scrolled_with_keyboard");
+				}
+				_self.scroller($select_div.find("div.hovered-item").first());
+				return false;
+			} else if (code == "13") {
 				_self.$select_div.find("div.selected").removeClass("selected");
 				_self.$select_div.find("div.hovered-item").addClass("selected").removeClass("hovered-item");
 				var new_val = _self.$select_div.find("div.selected").text();
@@ -253,53 +296,7 @@
 					var $next_input = _self.$select_div.parent().nextAll().find("input").first();
 					$next_input.focus();
 				}
-				return false;	
-			}
-		}
-		/*
-		 * Action for arrows press
-		 */
-		this.arrowPressed = function(e, extra) {
-			var $selected = null;
-			var $select_div = _self.$select_div;
-			_self.disableMouse();
-			if (extra != null) {
-				e.keyCode = extra;
-			}
-			// down
-			if (e.keyCode == "40") {
-				if ($("div.hovered-item").length > 0) {
-					$selected = $select_div.find("div.hovered-item");
-					var $next = $selected.nextAll("div.combobox_item:visible");
-					if ($next.length != 0) {
-						$select_div.find("div.hovered-item").removeClass("hovered-item").removeClass("scrolled_with_keyboard");
-						$next.first().addClass("hovered-item").addClass("scrolled_with_keyboard");
-					}
-				} else {
-					if ($("div.selected").length != 0) {
-						$select_div.find("div.selected").first().addClass("hovered-item");
-					} else {
-						$("div.combobox_item").first().addClass("hovered-item");
-					}
-				}
 
-				_self.scroller($select_div.find("div.hovered-item").first());
-				return false;
-				// up
-			} else if (e.keyCode == "38") {
-				if ($("div.hovered-item").length > 0) {
-					$selected = $("div.hovered-item");
-					var $prev = $selected.prevAll("div.combobox_item")
-						if ($prev.length != 0) {
-							$("div.hovered-item").removeClass("hovered-item").removeClass("scrolled_with_keyboard");
-							$prev.first().addClass("hovered-item").addClass("scrolled_with_keyboard");
-						}
-				} else {
-					$("div.combobox_item").first().addClass("hovered-item").addClass("scrolled_with_keyboard");
-				}
-				_self.scroller($select_div.find("div.hovered-item").first());
-				return false;
-			} else if (e.keyCode == "13") {
 				return false;
 			// HOME
 			} else if (e.keyCode == "36") {
@@ -370,7 +367,7 @@
 
 									var matches = $.fn.CBox.options["template"].match(/{(.*?)}/g);
 				
-									for (var j in matches) {
+									for (var j=0; j<matches.length; j++) {
 										var index = matches[j].replace(/{(.*)}/, "$1");
 										var val = mydata[i][index];
 										if (index != null && val != null) {
@@ -405,9 +402,7 @@
 			if (_self.type == "select") {
 				$input.hide();
 				$select_div.insertAfter($input);
-			} else {
-				$select_div.appendTo($("body"));
-			}
+			} 
 
 			var i=0;
 			var combobox = this;
@@ -420,8 +415,7 @@
 				i++;
 			});
 			this.scroller($select_div.find("div.select"));
-			$select_div.find("input.combobox_input").bind("keydown", this.arrowPressed );
-			$select_div.find("input.combobox_input").bind("keypress", this.enterPressed );
+			$select_div.find("input.combobox_input").bind("keydown", this.specialPressed );
 
 			var $option_fields = $select_div.find("div.option_fields");
 
@@ -582,6 +576,7 @@
 		$combobox.$input = $input
 		$combobox.type = "hidden";
 		$combobox.initComboBox($input, "hidden");
+		return $select_div;
 	}
 
 
