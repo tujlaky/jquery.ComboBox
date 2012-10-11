@@ -19,7 +19,8 @@
 		valueField: "id",
 		template: null,
 		url: null,
-		lineId: "combobox-item-{i}"
+		lineId: "combobox-item-{i}",
+		allowAdd: false
 	}
 
 	$.fn.CBox.options = new Array();
@@ -68,7 +69,12 @@
 				}
 			}
 			if (callback != null) {
-				callback(new_val);
+				// if callback function throw error catch it
+				try {
+					callback(new_val);
+				} catch (err) {
+					// do nothing
+				}
 			}
 		}
 
@@ -511,9 +517,9 @@
 		var $div   = $(document.createElement("div")).addClass("combobox_container");
 		var $input = $(document.createElement("input"))
 					.attr("type", "text")
+					.attr("name", $select.attr("name"))
 					.addClass("combobox_input")
 					.addClass("empty")
-					.val("asd")
 					.attr("autocomplete", "off")
 					.appendTo($div);
 
@@ -558,6 +564,17 @@
 			$combobox = new ComboBox();
 			$combobox.$input = $(this);
 			$combobox.type   = "select";
+			if ($.fn.CBox.options["allowAdd"] === true) {
+				var $input = $(document.createElement("input"))
+				.attr("type", "hidden")
+				.attr("name", $(this).attr("name"))
+				.appendTo($select_div);
+
+				$(this).removeAttr("name");
+				$combobox.$input = $input;
+				$combobox.type = "hidden";
+			}
+
 			$combobox.$select_div = $select_div;
 			$combobox.initComboBox($(this));
 		});
